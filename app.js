@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // MongoDB connection
-mongoose.connect('mongodb+srv://bajajsachin100:cl7wZHN6lgYl0ueV@football-tactics.ftpx93e.mongodb.net/?retryWrites=true&w=majority&appName=Football-Tactics', {
+mongoose.connect('mongodb+srv://bajajsachin100:cl7wZHN6lgYl0ueV@football-tactics.ftpx93e.mongodb.net/clartalk?retryWrites=true&w=majority&appName=Football-Tactics', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })

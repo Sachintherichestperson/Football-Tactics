@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
@@ -20,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // MongoDB connection
-mongoose.connect('mongodb://localhost:27017/footballTactics', {
+mongoose.connect('mongodb+srv://bajajsachin100:cl7wZHN6lgYl0ueV@football-tactics.ftpx93e.mongodb.net/?retryWrites=true&w=majority&appName=Football-Tactics', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })

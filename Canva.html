@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    section {
+      background-color: #1f1f1f;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 5px;
+      position: relative;
+    }
+    section div {
+      width: 25%;
+      height: 100%;
+      background-color: #000000;
+      position: relative;
+      overflow: hidden;
+    }
+    .car {
+      width: 50px;
+      height: 70px;
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: left 0.3s;
+    }
+    #carA {
+      background-color: red;
+    }
+    #carB {
+      background-color: blue;
+    }
+    .obstacle-square, .obstacle-circle {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .obstacle-square {
+      background-color: yellow;
+    }
+    .obstacle-circle {
+      border-radius: 50%;
+      background-color: green;
+    }
+    .score-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 24px;
+      z-index: 100;
+      height: 50px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      flex-direction: row;
+    }
+    .game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: red;
+      font-size: 48px;
+      font-weight: bold;
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <div id="road1"></div>
+    <div id="road2"></div>
+    <div id="road3"></div>
+    <div id="road4"></div>
+    <div class="score-container">
+      <span id="scoreA">Player A: 0</span> | 
+      <span id="scoreB">Player B: 0</span>
+    </div>
+    <div class="game-over" id="gameOver">
+      GAME OVER
+    </div>
+  </section>
+
+  <script>
+    const road1 = document.getElementById("road1");
+    const road2 = document.getElementById("road2");
+    const road3 = document.getElementById("road3");
+    const road4 = document.getElementById("road4");
+    const scoreAElement = document.getElementById("scoreA");
+    const scoreBElement = document.getElementById("scoreB");
+    const gameOverElement = document.getElementById("gameOver");
+
+    // Game state
+    let scoreA = 0;
+    let scoreB = 0;
+    let gameActive = true;
+    let lastSquareTimeA = 0; // Track last square generation for Player A
+    let lastSquareTimeB = 0; // Track last square generation for Player B
+
+    // Create two cars (now stationary at the bottom)
+    const carA = document.createElement("div");
+    carA.classList.add("car");
+    carA.id = "carA";
+    road2.appendChild(carA);
+
+    const carB = document.createElement("div");
+    carB.classList.add("car");
+    carB.id = "carB";
+    road3.appendChild(carB);
+
+    // Cars starting position
+    let carA_road = 2; // 1 means road1, 2 means road2
+    let carB_road = 3; // 3 means road3, 4 means road4
+
+    function generateObstacle(road) {
+      if (!gameActive) return;
+      
+      const currentTime = Date.now();
+      const isSquare = Math.random() < 0.5;
+      
+      // Check if we should skip square generation to maintain gap
+      if (isSquare) {
+        if ((road === road1 || road === road2) && currentTime - lastSquareTimeA < 1000) {
+          return; // Skip square generation for Player A to maintain gap
+        }
+        if ((road === road3 || road === road4) && currentTime - lastSquareTimeB < 1000) {
+          return; // Skip square generation for Player B to maintain gap
+        }
+      }
+      
+      const obstacle = document.createElement("div");
+      obstacle.classList.add(isSquare ? "obstacle-square" : "obstacle-circle");
+      road.appendChild(obstacle);
+
+      if (isSquare) {
+        if (road === road1 || road === road2) {
+          lastSquareTimeA = currentTime;
+        } else {
+          lastSquareTimeB = currentTime;
+        }
+      }
+
+      moveObstacle(obstacle, road, isSquare);
+    }
+
+    function moveObstacle(obstacle, road, isSquare) {
+      let pos = -50;
+      const speed = 3;
+      const interval = setInterval(() => {
+        if (!gameActive) {
+          clearInterval(interval);
+          return;
+        }
+        
+        pos += speed;
+        obstacle.style.top = pos + "px";
+
+        // Remove obstacle if it leaves the screen
+        if (pos > window.innerHeight) {
+          obstacle.remove();
+          clearInterval(interval);
+          
+          // If it was a circle and it reached bottom without being collected
+          if (!isSquare) {
+            const player = (road === road1 || road === road2) ? "A" : "B";
+            alert(`Player ${player} missed a green circle! Game Over!`);
+            endGame(player);
+          }
+        }
+
+        // Collision Detection
+        const car = (road === road1 || road === road2) ? carA : carB;
+        const carRect = car.getBoundingClientRect();
+        const obsRect = obstacle.getBoundingClientRect();
+
+        if (
+          carRect.left < obsRect.right &&
+          carRect.right > obsRect.left &&
+          carRect.top < obsRect.bottom &&
+          carRect.bottom > obsRect.top
+        ) {
+          clearInterval(interval);
+          obstacle.remove();
+
+          if (isSquare) {
+            const player = (road === road1 || road === road2) ? "A" : "B";
+            alert(`Player ${player} hit a yellow square! Game Over!`);
+            endGame(player);
+          } else {
+            // Collected a circle - increase score
+            if (road === road1 || road === road2) {
+              scoreA++;
+              scoreAElement.textContent = `Player A: ${scoreA}`;
+            } else {
+              scoreB++;
+              scoreBElement.textContent = `Player B: ${scoreB}`;
+            }
+          }
+        }
+      }, 20);
+    }
+
+    function endGame(player) {
+      gameActive = false;
+      gameOverElement.textContent = `Player ${player} LOST! GAME OVER`;
+      gameOverElement.style.display = "block";
+    }
+
+    // Start obstacle generation with different intervals for each road
+    setInterval(() => generateObstacle(road1), 1000);
+    setInterval(() => generateObstacle(road2), 1000);
+    setInterval(() => generateObstacle(road3), 1000);
+    setInterval(() => generateObstacle(road4), 1000);
+
+    // Car switching function
+    function switchRoadA() {
+      if (!gameActive) return;
+      
+      if (carA_road === 2) {
+        road1.appendChild(carA);
+        carA.style.left = "50%";
+        carA_road = 1;
+      } else {
+        road2.appendChild(carA);
+        carA.style.left = "50%";
+        carA_road = 2;
+      }
+    }
+
+    function switchRoadB() {
+      if (!gameActive) return;
+      
+      if (carB_road === 3) {
+        road4.appendChild(carB);
+        carB.style.left = "50%";
+        carB_road = 4;
+      } else {
+        road3.appendChild(carB);
+        carB.style.left = "50%";
+        carB_road = 3;
+      }
+    }
+
+    // Add keyboard controls
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "a") {
+        switchRoadA(); // Press 'a' key to switch carA
+      }
+      if (e.key === "l") {
+        switchRoadB(); // Press 'l' key to switch carB
+      }
+    });
+  </script>
+</body>
+</html>

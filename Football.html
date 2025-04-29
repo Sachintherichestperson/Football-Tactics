@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Tactics Board</title>
+  <style>
+    :root {
+      --primary-color: #1e88e5;
+      --secondary-color: #e53935;
+      --field-color: #2e7d32;
+      --field-line-color: rgba(255, 255, 255, 0.8);
+      --control-bg: #455a64;
+      --control-hover: #546e7a;
+      --text-color: #ffffff;
+      --bench-bg: #263238;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      overflow-x: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #333;
+      color: var(--text-color);
+    }
+    
+    section {
+      width: 100%;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: var(--text-color);
+      font-size: 2rem;
+    }
+    
+    .football-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .football-field {
+      width: 92%;
+      max-width: 800px;
+      aspect-ratio: 80/112;
+      position: relative;
+      background-color: var(--field-color);
+      border: 3px solid white;
+      overflow: hidden;
+    }
+    
+    .field-markings {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    
+    .center-line {
+      width: 100%;
+      height: 2px;
+      background-color: var(--field-line-color);
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    
+    .center-circle {
+      width: 20%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid var(--field-line-color);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .center-spot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--field-line-color);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .penalty-area {
+      position: absolute;
+      width: 70%;
+      height: 25%;
+      border: 2px solid var(--field-line-color);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .goal-area {
+      position: absolute;
+      width: 65%;
+      height: 60%;
+      border: 2px solid var(--field-line-color);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .penalty-spot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--field-line-color);
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .top-area {
+      top: 0;
+    }
+    
+    .bottom-area {
+      bottom: 0;
+    }
+    
+    .top-penalty-spot {
+      top: 18%;
+    }
+    
+    .bottom-penalty-spot {
+      bottom: 18%;
+    }
+    
+    .player {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      position: absolute;
+      cursor: grab;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s, box-shadow 0.1s;
+      z-index: 10;
+    }
+    
+    .player:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+    
+    .player.blue {
+      background-color: var(--primary-color);
+      border: 2px solid #0d47a1;
+    }
+    
+    .player.red {
+      background-color: var(--secondary-color);
+      border: 2px solid #b71c1c;
+    }
+    
+    .player.animate {
+      transition: left 0.5s ease-out, top 0.5s ease-out;
+    }
+    
+    .football-ball {
+      width: 30px;
+      height: 30px;
+      background-color: white;
+      border: 2px solid #333;
+      border-radius: 50%;
+      position: absolute;
+      cursor: grab;
+      z-index: 20;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s;
+    }
+    
+    .football-ball:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+    }
+    
+    .football-ball.animate {
+      transition: left 0.5s ease-out, top 0.5s ease-out;
+    }
+    
+    .bench-container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .bench {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--bench-bg);
+      border-radius: 5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .bench-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: var(--text-color);
+    }
+    
+    .bench .player {
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .controls {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      padding: 15px;
+      background-color: var(--bench-bg);
+      border-radius: 5px;
+    }
+    
+    .controls button {
+      padding: 10px 20px;
+      border: none;
+      background-color: var(--control-bg);
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 5px;
+      transition: background-color 0.3s, transform 0.2s;
+      min-width: 120px;
+    }
+    
+    .controls button:hover {
+      background-color: var(--control-hover);
+    }
+    
+    .controls button:active {
+      transform: scale(0.98);
+    }
+    
+    .controls button.primary {
+      background-color: var(--primary-color);
+    }
+    
+    .controls button.primary:hover {
+      background-color: #1976d2;
+    }
+    
+    .controls button.danger {
+      background-color: var(--secondary-color);
+    }
+    
+    .controls button.danger:hover {
+      background-color: #d32f2f;
+    }
+    
+    .recording-selector-container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 10px;
+    }
+    
+    /* Custom Select Styles */
+    .custom-select {
+      position: relative;
+      width: 100%;
+    }
+    
+    .custom-select-trigger {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--control-bg);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .custom-select-trigger::after {
+      content: "▲";
+      font-size: 12px;
+      transition: transform 0.3s;
+    }
+    
+    .custom-select.open .custom-select-trigger::after {
+      transform: rotate(180deg);
+    }
+    
+    .custom-options {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: var(--bench-bg);
+      border-radius: 5px 5px 0 0;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 100;
+    }
+    
+    .custom-select.open .custom-options {
+      display: block;
+    }
+    
+    .custom-option {
+      padding: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .custom-option:hover {
+      background-color: var(--control-hover);
+    }
+    
+    .custom-option.selected {
+      background-color: var(--primary-color);
+    }
+    
+    .status-message {
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    .status-message.success {
+      background-color: #43a047;
+      display: block;
+    }
+    
+    .status-message.error {
+      background-color: #ff0400;
+      display: block;
+    }
+    
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .speed-control label {
+      font-weight: bold;
+    }
+    
+    .speed-control input {
+      width: 100px;
+    }
+    
+    @media (max-width: 768px) {
+      .player {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+      }
+      
+      .football-ball {
+        width: 25px;
+        height: 25px;
+      }
+      
+      .controls button {
+        padding: 8px 15px;
+        font-size: 14px;
+        min-width: 100px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      section {
+        padding: 10px;
+      }
+      
+      .player {
+        width: 30px;
+        height: 30px;
+        font-size: 10px;
+      }
+      
+      .controls {
+        padding: 10px;
+      }
+      
+      .controls button {
+        padding: 6px 12px;
+        font-size: 13px;
+        min-width: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+<section>
+  <div class="football-container">
+    <div class="football-field" id="field">
+      <div class="field-markings">
+        <div id="statusMessage" class="status-message"></div>
+        <div class="center-line"></div>
+        <div class="center-circle"></div>
+        <div class="center-spot"></div>
+        
+        <div class="penalty-area top-area">
+          <div class="goal-area top-area"></div>
+          <div class="penalty-spot top-penalty-spot"></div>
+        </div>
+        
+        <div class="penalty-area bottom-area">
+          <div class="goal-area bottom-area"></div>
+          <div class="penalty-spot bottom-penalty-spot"></div>
+        </div>
+      </div>
+      
+      <div class="football-ball" id="footballBall"></div>
+    </div>
+  </div>
+  
+  <div class="bench-container">
+    <div class="bench-title">Team Players (Drag onto field)</div>
+    <div class="bench" id="teamBench">
+      <!-- Team Players -->
+      <div class="player blue">1</div>
+      <div class="player blue">2</div>
+      <div class="player blue">3</div>
+      <div class="player blue">4</div>
+      <div class="player blue">5</div>
+      <div class="player blue">6</div>
+      <div class="player blue">7</div>
+      <div class="player blue">8</div>
+      <div class="player blue">9</div>
+      <div class="player blue">10</div>
+      <div class="player blue">11</div>
+    </div>
+    
+    <div class="bench-title">Opponent Players</div>
+    <div class="bench" id="opponentBench">
+      <!-- Opponent Players -->
+      <div class="player red">1</div>
+      <div class="player red">2</div>
+      <div class="player red">3</div>
+      <div class="player red">4</div>
+      <div class="player red">5</div>
+      <div class="player red">6</div>
+      <div class="player red">7</div>
+      <div class="player red">8</div>
+      <div class="player red">9</div>
+      <div class="player red">10</div>
+      <div class="player red">11</div>
+    </div>
+  </div>
+
+  <div class="recording-selector-container">
+    <!-- Custom Select Implementation -->
+    <div class="custom-select" id="customSelect">
+      <div class="custom-select-trigger">
+        <span>Select saved tactics...</span>
+      </div>
+      <div class="custom-options" id="customOptions"></div>
+    </div>
+    <!-- Hidden native select for form submission if needed -->
+    <select id="recordingSelector" style="display: none;"></select>
+  </div>
+
+  <div class="controls">
+    <button id="recordFrame" class="primary">Record Frame</button>
+    <button id="playRecording" class="primary">Play Animation</button>
+    <button id="stopRecording">Stop</button>
+    <div class="speed-control">
+      <label for="animationSpeed">Speed:</label>
+      <input type="range" id="animationSpeed" min="0.5" max="3" step="0.1" value="1">
+      <span id="speedValue">1x</span>
+    </div>
+    <button id="saveRecording">Save Tactics</button>
+    <button id="clearRecording" class="danger">Clear</button>
+  </div>
+  
+</section>
+
+<script>
+  // DOM Elements
+  const field = document.getElementById('field');
+  const teamBench = document.getElementById('teamBench');
+  const opponentBench = document.getElementById('opponentBench');
+  const footballBall = document.getElementById('footballBall');
+  const recordingSelector = document.getElementById('recordingSelector');
+  const statusMessage = document.getElementById('statusMessage');
+  const animationSpeed = document.getElementById('animationSpeed');
+  const speedValue = document.getElementById('speedValue');
+  
+  // Custom select elements
+  const customSelect = document.getElementById('customSelect');
+  const customSelectTrigger = document.querySelector('.custom-select-trigger');
+  const customOptions = document.getElementById('customOptions');
+  
+  // All player elements
+  const players = [...document.querySelectorAll('.player')];
+  
+  // App State
+  let isDragging = false;
+  let currentDraggable = null;
+  let offsetX = 0;
+  let offsetY = 0;
+  let frames = [];
+  let currentRecordingId = null;
+  let animationInterval = null;
+  let currentSpeed = 1;
+  let currentSelectedOption = null;
+  
+  // Initialize ball position
+  footballBall.style.left = '50%';
+  footballBall.style.top = '50%';
+  footballBall.style.transform = 'translate(-50%, -50%)';
+  
+  // Update speed display
+  animationSpeed.addEventListener('input', () => {
+    currentSpeed = parseFloat(animationSpeed.value);
+    speedValue.textContent = `${currentSpeed}x`;
+  });
+  
+  // Custom Select Functionality
+  customSelectTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    customSelect.classList.toggle('open');
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!customSelect.contains(e.target)) {
+      customSelect.classList.remove('open');
+    }
+  });
+  
+  function createCustomOption(recording) {
+    const option = document.createElement('div');
+    option.className = 'custom-option';
+    option.dataset.id = recording._id;
+    option.textContent = `${recording.name} (${new Date(recording.updatedAt).toLocaleDateString()})`;
+    
+    option.addEventListener('click', () => {
+      // Remove selected class from previous option
+      if (currentSelectedOption) {
+        currentSelectedOption.classList.remove('selected');
+      }
+      
+      // Add selected class to current option
+      option.classList.add('selected');
+      currentSelectedOption = option;
+      
+      // Update trigger text
+      customSelectTrigger.querySelector('span').textContent = option.textContent;
+      
+      // Set the value on the hidden select
+      recordingSelector.value = recording._id;
+      
+      // Dispatch change event on the hidden select
+      recordingSelector.dispatchEvent(new Event('change'));
+      
+      // Close dropdown
+      customSelect.classList.remove('open');
+    });
+    
+    return option;
+  }
+  
+  // Drag functionality for players and ball
+  function setupDrag(element) {
+    element.addEventListener('mousedown', startDrag);
+    element.addEventListener('touchstart', startDrag, { passive: false });
+  }
+  
+  function startDrag(e) {
+    e.preventDefault();
+    isDragging = true;
+    currentDraggable = this;
+    
+    const clientX = e.clientX || e.touches[0].clientX;
+    const clientY = e.clientY || e.touches[0].clientY;
+    
+    const rect = this.getBoundingClientRect();
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+    
+    // If dragging a player from bench, move it to field
+    if (this.classList.contains('player') && 
+        (this.parentElement === teamBench || this.parentElement === opponentBench)) {
+      field.appendChild(this);
+      this.style.position = 'absolute';
+    }
+    
+    updatePosition(this, clientX, clientY);
+  }
+  
+  function updatePosition(element, clientX, clientY) {
+    const fieldRect = field.getBoundingClientRect();
+    let x = clientX - fieldRect.left - offsetX;
+    let y = clientY - fieldRect.top - offsetY;
+    
+    // Constrain to field boundaries
+    const maxX = field.clientWidth - element.offsetWidth;
+    const maxY = field.clientHeight - element.offsetHeight;
+    
+    x = Math.max(0, Math.min(x, maxX));
+    y = Math.max(0, Math.min(y, maxY));
+    
+    element.style.left = x + 'px';
+    element.style.top = y + 'px';
+  }
+  
+  function handleMove(e) {
+    if (!isDragging || !currentDraggable) return;
+    
+    const clientX = e.clientX || e.touches[0].clientX;
+    const clientY = e.clientY || e.touches[0].clientY;
+    
+    updatePosition(currentDraggable, clientX, clientY);
+  }
+  
+  function endDrag() {
+    isDragging = false;
+    currentDraggable = null;
+  }
+  
+  // Set up event listeners
+  players.forEach(setupDrag);
+  setupDrag(footballBall);
+  
+  document.addEventListener('mousemove', handleMove);
+  document.addEventListener('touchmove', handleMove, { passive: false });
+  
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+  
+  // Recording functionality
+  document.getElementById('recordFrame').addEventListener('click', () => {
+    const frame = {
+      players: [],
+      ball: {}
+    };
+    
+    // Record players on field
+    players.forEach(player => {
+      if (player.parentElement === field) {
+        frame.players.push({
+          id: player.textContent,
+          left: player.style.left,
+          top: player.style.top,
+          team: player.classList.contains('blue') ? 'team' : 'opponent'
+        });
+      }
+    });
+    
+    // Record ball position
+    frame.ball = {
+      left: footballBall.style.left,
+      top: footballBall.style.top
+    };
+    
+    frames.push(frame);
+    showStatus(`Frame ${frames.length} recorded`, 'success');
+  });
+  
+  // Play recording
+  function playRecording() {
+    if (frames.length === 0) {
+      showStatus("No recorded frames! Please record first.", 'error');
+      return;
+    }
+    
+    stopAnimation(); // Stop any current animation
+    
+    // Reset all players to bench
+    resetPlayersToBench();
+    
+    // Process first frame
+    applyFrame(0);
+    
+    // Force reflow to ensure styles are applied before animation
+    void field.offsetWidth;
+    
+    // Add animation class to all elements on field
+    enableAnimations();
+
+    // Scroll to the field
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Animate through remaining frames
+    let frameIndex = 1;
+    const frameTime = 1000 / currentSpeed;
+    
+    animationInterval = setInterval(() => {
+      if (frameIndex >= frames.length) {
+        stopAnimation();
+        return;
+      }
+      
+      applyFrame(frameIndex);
+      frameIndex++;
+    }, frameTime);
+  }
+  
+  document.getElementById('playRecording').addEventListener('click', playRecording);
+  
+  document.getElementById('stopRecording').addEventListener('click', stopAnimation);
+  
+  function stopAnimation() {
+    if (animationInterval) {
+      clearInterval(animationInterval);
+      animationInterval = null;
+    }
+    disableAnimations();
+  }
+  
+  function resetPlayersToBench() {
+    players.forEach(player => {
+      if (player.classList.contains('blue')) {
+        teamBench.appendChild(player);
+      } else {
+        opponentBench.appendChild(player);
+      }
+      player.style.position = 'relative';
+      player.style.left = '';
+      player.style.top = '';
+      player.style.display = 'flex';
+    });
+    
+    footballBall.style.left = '50%';
+    footballBall.style.top = '50%';
+    footballBall.style.transform = 'translate(-50%, -50%)';
+  }
+  
+  function applyFrame(frameIndex) {
+    const frame = frames[frameIndex];
+    
+    // Process players
+    frame.players.forEach(pos => {
+      const player = players.find(p => 
+        p.textContent === pos.id && 
+        ((pos.team === 'team' && p.classList.contains('blue')) || 
+         (pos.team === 'opponent' && p.classList.contains('red')))
+      );
+      
+      if (player) {
+        if (player.parentElement !== field) {
+          field.appendChild(player);
+          player.style.position = 'absolute';
+        }
+        player.style.left = pos.left || '0px';
+        player.style.top = pos.top || '0px';
+      }
+    });
+    
+    // Process ball
+    footballBall.style.left = frame.ball.left || '50%';
+    footballBall.style.top = frame.ball.top || '50%';
+  }
+  
+  function enableAnimations() {
+    players.forEach(player => {
+      if (player.parentElement === field) {
+        player.classList.add('animate');
+      }
+    });
+    footballBall.classList.add('animate');
+  }
+  
+  function disableAnimations() {
+    players.forEach(player => {
+      player.classList.remove('animate');
+    });
+    footballBall.classList.remove('animate');
+  }
+  
+  // Save/load functionality
+  document.getElementById('saveRecording').addEventListener('click', async () => {
+    if (frames.length === 0) {
+      showStatus("No frames to save! Please record first.", 'error');
+      return;
+    }
+    
+    const recordingName = prompt("Enter a name for this tactic:", 
+      currentRecordingId ? `Tactic ${new Date().toLocaleString()}` : "");
+    
+    if (!recordingName) return;
+    
+    try {
+      const endpoint = currentRecordingId 
+        ? `http://localhost:3000/api/recordings/${currentRecordingId}`
+        : 'http://localhost:3000/api/recordings';
+      
+      const method = currentRecordingId ? 'PUT' : 'POST';
+      
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          name: recordingName, 
+          frames,
+          updatedAt: new Date().toISOString()
+        })
+      });
+      
+      if (!response.ok) throw new Error(response.statusText);
+      
+      const result = await response.json();
+      currentRecordingId = result._id || currentRecordingId;
+      
+      showStatus(`Tactic "${recordingName}" saved successfully!`, 'success');
+      loadRecordings();
+    } catch (error) {
+      console.error("Error saving recording:", error);
+      showStatus("Failed to save tactic. Please try again.", 'error');
+    }
+  });
+  
+  document.getElementById('clearRecording').addEventListener('click', () => {
+    if (frames.length > 0 || currentRecordingId) {
+      if (confirm("Are you sure you want to clear the current tactic?")) {
+        frames = [];
+        currentRecordingId = null;
+        recordingSelector.value = '';
+        customSelectTrigger.querySelector('span').textContent = 'Select saved tactics...';
+        if (currentSelectedOption) {
+          currentSelectedOption.classList.remove('selected');
+          currentSelectedOption = null;
+        }
+        stopAnimation();
+        resetPlayersToBench();
+        showStatus("Current tactic cleared.", 'success');
+      }
+    } else {
+      showStatus("Nothing to clear.", 'error');
+    }
+  });
+  
+  async function loadRecordings() {
+    try {
+      const response = await fetch('http://localhost:3000/api/recordings');
+      if (!response.ok) throw new Error(response.statusText);
+      
+      const recordings = await response.json();
+      
+      // Clear existing options
+      customOptions.innerHTML = '';
+      recordingSelector.innerHTML = '<option value="">Select saved tactics...</option>';
+      
+      // Add new options
+      recordings.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+        .forEach(recording => {
+          // Add to custom dropdown
+          customOptions.appendChild(createCustomOption(recording));
+          
+          // Add to hidden native select
+          const option = document.createElement('option');
+          option.value = recording._id;
+          option.textContent = `${recording.name} (${new Date(recording.updatedAt).toLocaleDateString()})`;
+          recordingSelector.appendChild(option);
+        });
+    } catch (error) {
+      console.error("Error loading recordings:", error);
+      showStatus("Failed to load saved tactics.", 'error');
+    }
+  }
+  
+  recordingSelector.addEventListener('change', async (e) => {
+    const selectedId = e.target.value;
+    if (!selectedId) {
+      // If "Select saved tactics..." is chosen, clear current recording
+      frames = [];
+      currentRecordingId = null;
+      stopAnimation();
+      resetPlayersToBench();
+      return;
+    }
+    
+    try {
+      const response = await fetch(`http://localhost:3000/api/recordings/${selectedId}`);
+      if (!response.ok) throw new Error(response.statusText);
+
+      field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      const recording = await response.json();
+      frames = recording.frames;
+      currentRecordingId = recording._id;
+      showStatus(`Loaded tactic: ${recording.name}`, 'success');
+      
+      // Automatically play the selected recording
+      playRecording();
+    } catch (error) {
+      console.error("Error loading recording:", error);
+      showStatus("Failed to load tactic.", 'error');
+    }
+  });
+  
+  function showStatus(message, type) {
+    statusMessage.textContent = message;
+    statusMessage.className = 'status-message ' + type;
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+      statusMessage.className = 'status-message';
+      statusMessage.textContent = '';
+    }, 3000);
+  }
+  
+  // Initialize
+  loadRecordings();
+</script>
+</body>
+</html>

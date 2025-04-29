@@ -11,7 +11,7 @@ const PORT = 3000;
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000', // Update with your frontend URL
+  origin: 'https://football-tactics-uzzb.onrender.com/',
   credentials: true
 }));
 app.use(bodyParser.json());

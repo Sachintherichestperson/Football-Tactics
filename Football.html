@@ -49,13 +49,14 @@
     .football-container {
       width: 100%;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
+      flex-direction: row;
+      gap: 5px;
     }
+
+    
     
     .football-field {
-      width: 92%;
+      width: 100%;
       max-width: 800px;
       aspect-ratio: 80/112;
       position: relative;
@@ -63,7 +64,7 @@
       border: 3px solid white;
       overflow: hidden;
     }
-    
+
     .field-markings {
       position: absolute;
       width: 100%;
@@ -210,25 +211,34 @@
       width: 100%;
       max-width: 800px;
       display: flex;
+      flex-direction: row;
+      gap: 5px;
+      height: fit-content;
+    }
+
+    .column-push{
+      display: flex;
       flex-direction: column;
-      gap: 10px;
+      width: 15%;
     }
     
     .bench {
-      width: 100%;
-      padding: 10px;
+      width: 46%;
+      /* padding: 10px; */
       background-color: var(--bench-bg);
       border-radius: 5px;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       justify-content: center;
+      height: fit-content;
     }
     
     .bench-title {
       font-weight: bold;
       margin-bottom: 5px;
       color: var(--text-color);
+      display: none;
     }
     
     .bench .player {
@@ -384,8 +394,57 @@
     .speed-control input {
       width: 100px;
     }
+
+    .primary1, .primary{
+      border: none;
+      background-color: var(--control-bg);
+      color: white;
+      cursor: pointer;
+      font-size: 8px;
+      font-weight: 800;
+      border-radius: 5px;
+      transition: background-color 0.3s, transform 0.2s;
+      padding: 5px;
+    }
+
+    .primary{
+      background-color: #1e88e5;
+    }
     
-    @media (max-width: 768px) {
+    .buttons-cont{
+      flex-direction: column;
+      padding-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    /* New styles for positioning players on the right side */
+    /* @media (min-width: 768px) {
+      .football-container {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      
+      .bench-container {
+        max-width: 135px;
+        order: -1; 
+      }
+      
+      .player {
+        width: 29px;
+        height: 29px;
+        font-size: 16px;
+      }
+      
+      .football-ball {
+        width: 35px;
+        height: 35px;
+      }
+    } */
+    
+    /* @media (max-width: 767px) {
       .player {
         width: 35px;
         height: 35px;
@@ -402,8 +461,51 @@
         font-size: 14px;
         min-width: 100px;
       }
-    }
+    } */
     
+    @media (max-width: 768px){
+      .football-container{
+        flex-direction: column-reverse;
+      }
+
+      .football-field{
+        height: 880px;
+      }
+
+      .column-push{
+        width: 100%;
+      }
+
+      .bench-container{
+        flex-direction: column;
+      }
+
+      .bench{
+        width: 100%;
+        flex-wrap: unset;
+        gap: unset;
+      }
+
+      .primary1, .primary{
+        padding: 5px;
+        font-size: 16px;
+        justify-content: center;
+      }
+
+      .buttons-cont{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 554px){
+        .football-field{
+            height: 540px;
+        }
+    }
+
+
     @media (max-width: 480px) {
       section {
         padding: 10px;
@@ -425,11 +527,129 @@
         min-width: 80px;
       }
     }
+
+    @media (max-width: 396px){
+      .football-container{
+        flex-direction: column-reverse;
+      }
+
+      .football-field{
+        height: 600px;
+      }
+
+      .column-push{
+        width: 100%;
+      }
+
+      .bench-container{
+        flex-direction: column;
+      }
+
+      .bench{
+        width: 100%;
+        flex-wrap: unset;
+        gap: unset;
+      }
+
+      .primary1, .primary{
+        padding: 5px;
+        font-size: 16px;
+        justify-content: center;
+      }
+
+      .buttons-cont{
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .football-field{
+        height: 540px;
+      }
+    }
+
+    @media (max-width: 320px){
+      .football-container{
+        flex-direction: column-reverse;
+      }
+
+      .football-field{
+        height: 490px;
+      }
+
+      .column-push{
+        width: 100%;
+      }
+
+      .bench-container{
+        flex-direction: column;
+      }
+
+      .bench{
+        width: 100%;
+        flex-wrap: unset;
+        gap: unset;
+      }
+
+      .primary1, .primary{
+        padding: 5px;
+        font-size: 16px;
+        justify-content: center;
+      }
+
+      .buttons-cont{
+        display: flex;
+        flex-direction: row;
+      }
+    }
+
   </style>
 </head>
 <body>
 <section>
   <div class="football-container">
+    <div class="column-push">
+      <div class="bench-container">
+        <div class="bench-title">Team Players (Drag onto field)</div>
+        <div class="bench" id="teamBench">
+          <!-- Team Players -->
+          <div class="player blue">1</div>
+          <div class="player blue">2</div>
+          <div class="player blue">3</div>
+          <div class="player blue">4</div>
+          <div class="player blue">5</div>
+          <div class="player blue">6</div>
+          <div class="player blue">7</div>
+          <div class="player blue">8</div>
+          <div class="player blue">9</div>
+          <div class="player blue">10</div>
+          <div class="player blue">11</div>
+        </div>
+        
+        <div class="bench-title">Opponent Players</div>
+        <div class="bench" id="opponentBench">
+          <!-- Opponent Players -->
+          <div class="player red">1</div>
+          <div class="player red">2</div>
+          <div class="player red">3</div>
+          <div class="player red">4</div>
+          <div class="player red">5</div>
+          <div class="player red">6</div>
+          <div class="player red">7</div>
+          <div class="player red">8</div>
+          <div class="player red">9</div>
+          <div class="player red">10</div>
+          <div class="player red">11</div>
+        </div>
+    </div>
+    <div class="buttons-cont">
+      <button id="recordFrame" class="primary1">Record Frame</button>
+      <button id="playRecording" class="primary">Play Animation</button>
+    </div>
+    </div>
+    
     <div class="football-field" id="field">
       <div class="field-markings">
         <div id="statusMessage" class="status-message"></div>
@@ -452,40 +672,6 @@
     </div>
   </div>
   
-  <div class="bench-container">
-    <div class="bench-title">Team Players (Drag onto field)</div>
-    <div class="bench" id="teamBench">
-      <!-- Team Players -->
-      <div class="player blue">1</div>
-      <div class="player blue">2</div>
-      <div class="player blue">3</div>
-      <div class="player blue">4</div>
-      <div class="player blue">5</div>
-      <div class="player blue">6</div>
-      <div class="player blue">7</div>
-      <div class="player blue">8</div>
-      <div class="player blue">9</div>
-      <div class="player blue">10</div>
-      <div class="player blue">11</div>
-    </div>
-    
-    <div class="bench-title">Opponent Players</div>
-    <div class="bench" id="opponentBench">
-      <!-- Opponent Players -->
-      <div class="player red">1</div>
-      <div class="player red">2</div>
-      <div class="player red">3</div>
-      <div class="player red">4</div>
-      <div class="player red">5</div>
-      <div class="player red">6</div>
-      <div class="player red">7</div>
-      <div class="player red">8</div>
-      <div class="player red">9</div>
-      <div class="player red">10</div>
-      <div class="player red">11</div>
-    </div>
-  </div>
-
   <div class="recording-selector-container">
     <!-- Custom Select Implementation -->
     <div class="custom-select" id="customSelect">
@@ -499,8 +685,6 @@
   </div>
 
   <div class="controls">
-    <button id="recordFrame" class="primary">Record Frame</button>
-    <button id="playRecording" class="primary">Play Animation</button>
     <button id="stopRecording">Stop</button>
     <div class="speed-control">
       <label for="animationSpeed">Speed:</label>
